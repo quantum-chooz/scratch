@@ -1,19 +1,35 @@
 import requests
 import time
 import random
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+from urllib.error import HTTPError
 
 while True == True:
     
     # generates random studio code
     number = random.randint(0, 32000000)
     
-    # gets the text from the selected studio
-    info = requests.get("https://api.scratch.mit.edu/studios/"+ str(number))
+    try:
+        # opens webpage
+        url = "https://api.scratch.mit.edu/studios/" + str(number)
+        html = urlopen(url).read()
+        soup = BeautifulSoup(html, features="html.parser")
+
+        for script in soup(["script", "style"]):
+            script.extract()
     
-    # if the studio exists, it prints the studio number
-    if info != '{"code":"NotFound","message":""}':
+        text = soup.get_text()
         
-        print(number)
+        # if the studio exists, it prints the studio number
+        if str(text).startswith('{'):
+        
+            print(number)
+        
+    # exception handling for if the page doesn't exist
+    except HTTPError:
+        
+        pass
     
     # sleepy sleep time to prevent overload
-    time.sleep(3)
+    time.sleep(1)
